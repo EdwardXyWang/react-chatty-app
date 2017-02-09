@@ -15,17 +15,19 @@ const server = express()
 // Create the WebSockets server
 const wss = new SocketServer({ server });
 
+const COLORS = ["red", "blue", "green", "black"];
+function getRandomColor() {
+  return COLORS[Math.floor(Math.random()*COLORS.length)];
+}
+
 let onlineUserCount = 0;
-
 function onlineUserNumberBroadcast(number) {
-  const userNumber = JSON.stringify({
-    type: 'userNumber',
-    userNumber: number
-  });
-
   wss.clients.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
-      client.send(userNumber);
+      client.send(JSON.stringify({
+        type: 'userNumber',
+        userNumber: number
+      }));
     }
   });
 }
@@ -35,6 +37,9 @@ function onlineUserNumberBroadcast(number) {
 // the ws parameter in the callback.
 wss.on('connection', (pipeline) => {
   console.log('Client connected');
+
+  // assign user's colour
+  pipeline.colour = getRandomColor();
 
   // broadcast online user number
   onlineUserCount += 1;
@@ -48,6 +53,7 @@ wss.on('connection', (pipeline) => {
         //handle message
         parsedMessage.uuid = uuid.v4();
         parsedMessage.type = 'incomingMessage';
+        parsedMessage.colour = pipeline.colour;
         break;
       case 'postNotification':
         // handle notification
@@ -57,11 +63,9 @@ wss.on('connection', (pipeline) => {
         console.log("Unknown event type " + parsedMessage.type);
     }
 
-    const readyToGoMessage = JSON.stringify(parsedMessage);
-
     wss.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
-        client.send(readyToGoMessage);
+        client.send(JSON.stringify(parsedMessage));
       }
     });
   });

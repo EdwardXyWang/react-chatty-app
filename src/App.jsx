@@ -55,7 +55,8 @@ class App extends Component {
         const newIncomingMessage = {
           type: 'incomingMessage',
           username: data.username,
-          content: data.content
+          content: data.content,
+          colour: data.colour
         };
         const inmsg = this.state.messages.concat(newIncomingMessage);
         this.setState({messages: inmsg});
