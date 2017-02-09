@@ -7,17 +7,18 @@ class App extends Component {
   constructor () {
     super ();
     this.state = {
-      currentUser: {name: "Bob"}, // optional. if currentUser is not defined, it means the user is Anonymous
-      messages: []
+      currentUser: {name: "Mike"}, // optional. if currentUser is not defined, it means the user is Anonymous
+      messages: [],
+      onlineUserNumber: 0
     };
-    this.handleChatbarChange = this.handleChatbarChange.bind(this);
-    this.handleInputChange = this.handleNameChange.bind(this);
+    this.handleContentChange = this.handleContentChange.bind(this);
     this.handleNameChange = this.handleNameChange.bind(this);
   }
 
-  handleChatbarChange(userName, content) {
+
+  handleContentChange(userName, content) {
     const messageForWS = {
-      type: 'sendMessage',
+      type: 'postMessage',
       content: content,
       username: userName,
       date: Date.now()
@@ -25,21 +26,58 @@ class App extends Component {
     this.socket.send(JSON.stringify(messageForWS));
   }
 
+
   handleNameChange(user) {
-    this.setState({name: user});
+    const nameForWS = {
+      type: 'postNotification',
+      content: `${this.state.currentUser.name} changed their name to ${user}.`
+    };
+    this.setState({
+      currentUser: {name: user},
+    });
+    this.socket.send(JSON.stringify(nameForWS));
   }
+
 
   componentDidMount() {
     this.socket = new WebSocket("ws://localhost:4000");
     this.socket.onmessage = (receivedMessage) => {
-      const parseMessage = JSON.parse(receivedMessage.data);
-      const userName = parseMessage.username;
-      const content = parseMessage.content;
-      const newMessage = {username: userName, content: content};
-      const messages = this.state.messages.concat(newMessage);
-      this.setState({messages: messages});
+      const parsedMessage = JSON.parse(receivedMessage.data);
+      this.classify(parsedMessage);
     };
   }
+
+
+  classify (data) {
+    switch (data.type) {
+      case 'incomingMessage':
+        //handle message
+        const newIncomingMessage = {
+          type: 'incomingMessage',
+          username: data.username,
+          content: data.content
+        };
+        const inmsg = this.state.messages.concat(newIncomingMessage);
+        this.setState({messages: inmsg});
+        break;
+      case 'incomingNotification':
+        //handle notification
+        const newNoteMessage = {
+          type: 'incomingNotification',
+          nameStatusContent: data.content
+        };
+        const notemsg = this.state.messages.concat(newNoteMessage);
+        this.setState({messages: notemsg});
+        break;
+      case 'userNumber':
+        //handle on line user number
+        this.setState({onlineUserNumber: data.userNumber});
+        break;
+      default:
+        console.log("Unknown event type " + data.type);
+    }
+  }
+
 
   render() {
     console.log('Rendering <App />');
@@ -47,14 +85,15 @@ class App extends Component {
       <div>
         <nav className='navbar'>
           <a href={"/"} className="navbar-brand">Chatty</a>
+          <div className='countOnlineUser'>{this.state.onlineUserNumber} users online</div>
         </nav>
-        <Messagelist messages={this.state.messages}/>
+        <Messagelist messages={this.state.messages} />
         <Chatbar
           currentUser={this.state.currentUser.name}
-          nameChangeFunc={this.handleNameChange}
-          inputChangeFunc={this.handleChatbarChange} />
+          nameChange={this.handleNameChange}
+          contentChange={this.handleContentChange} />
       </div>
-    );
+    )
   }
 }
 

@@ -3,22 +3,24 @@ import React, {Component} from 'react';
 class Message extends Component {
   render () {
     console.log('Rendering <Message />');
-    return (
-      <div>
-        {this.props.messages.map((message, index) => {
-          return (
-            <div className='message' key={index}>
-              <span className='message-username'>
-                {message.username}
-              </span>
-              <span className='message-content'>
-                {message.content}
-              </span>
-            </div>
-          )
-        })}
-      </div>
-    );
+    if(this.props.msg.type === 'incomingMessage'){
+      return (
+        <div className='message'>
+          <span className='message-username'>
+            {this.props.msg.username}
+          </span>
+          <span className='message-content'>
+            {this.props.msg.content}
+          </span>
+        </div>
+      )
+    } else {
+      return (
+        <div className="message system">
+          {this.props.msg.nameStatusContent}
+        </div>
+      )
+    }
   }
 }
 

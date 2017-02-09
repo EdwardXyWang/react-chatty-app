@@ -1,28 +1,32 @@
 import React, {Component} from 'react';
 
 class Chatbar extends Component {
-
   constructor (props) {
     super(props);
-    this.state = {currentUser: this.props.currentUser};
-    this.inputChangeFunc = this.inputChangeFunc.bind(this);
-    this.nameChangeFunc = this.nameChangeFunc.bind(this);
-    this.namePassFunc = this.namePassFunc.bind(this);
+    this.state = {
+      reservedUser: this.props.currentUser,
+      currentUser: this.props.currentUser
+    };
+    this.contentPass = this.contentPass.bind(this);
+    this.nameChange = this.nameChange.bind(this);
+    this.namePass = this.namePass.bind(this);
   }
 
-  inputChangeFunc (e) {
+  contentPass (e) {
     if (e.key === 'Enter') {
-      this.props.inputChangeFunc(e.target.dataset.user, e.target.value);
+      this.props.contentChange(this.state.currentUser, e.target.value);
+      e.target.value = '';
     }
   }
 
-  namePassFunc (e) {
-    if (e.key === 'Enter') {
-      this.props.nameChangeFunc(e.target.value);
+  namePass (e) {
+    if (e.target.value !== this.state.reservedUser) {
+      this.props.nameChange(e.target.value);
+      this.setState({reservedUser: e.target.value});
     }
   }
 
-  nameChangeFunc (e) {
+  nameChange (e) {
     this.setState({currentUser: e.target.value});
   }
 
@@ -35,13 +39,12 @@ class Chatbar extends Component {
             type='text'
             className="chatbar-username"
             value={this.state.currentUser}
-            onKeyUp={this.namePassFunc}
-            onChange={this.nameChangeFunc} />
+            onBlur={this.namePass}
+            onChange={this.nameChange} />
           <input
             className="chatbar-message"
             placeholder="Type a message and hit ENTER"
-            data-user={this.state.currentUser} // Not a good way to attach information from other siblings
-            onKeyUp={this.inputChangeFunc}/>
+            onKeyUp={this.contentPass} />
       </footer>
     );
   }
