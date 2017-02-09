@@ -4,27 +4,44 @@ class Chatbar extends Component {
 
   constructor (props) {
     super(props);
-    this.handleChange = this.handleChange.bind(this);
+    this.state = {currentUser: this.props.currentUser};
+    this.inputChangeFunc = this.inputChangeFunc.bind(this);
+    this.nameChangeFunc = this.nameChangeFunc.bind(this);
+    this.namePassFunc = this.namePassFunc.bind(this);
   }
 
-  handleChange(e) {
-    this.props.onChange(e.target.value);
+  inputChangeFunc (e) {
+    if (e.key === 'Enter') {
+      this.props.inputChangeFunc(e.target.dataset.user, e.target.value);
+    }
+  }
+
+  namePassFunc (e) {
+    if (e.key === 'Enter') {
+      this.props.nameChangeFunc(e.target.value);
+    }
+  }
+
+  nameChangeFunc (e) {
+    this.setState({currentUser: e.target.value});
   }
 
   render() {
     console.log('Rending <Chatbar />');
     const currentUser = this.props.currentUser;
-    const value = this.props.content;
     return (
       <footer className='chatbar'>
-        <input
-          className="chatbar-username"
-          placeholder={currentUser} />
-        <input
-          className="chatbar-message"
-          placeholder="Type a message and hit ENTER"
-          value={value}
-          onChange={this.handleChange}/>
+          <input
+            type='text'
+            className="chatbar-username"
+            value={this.state.currentUser}
+            onKeyUp={this.namePassFunc}
+            onChange={this.nameChangeFunc} />
+          <input
+            className="chatbar-message"
+            placeholder="Type a message and hit ENTER"
+            data-user={this.state.currentUser} // Not a good way to attach information from other siblings
+            onKeyUp={this.inputChangeFunc}/>
       </footer>
     );
   }

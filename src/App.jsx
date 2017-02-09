@@ -6,35 +6,43 @@ class App extends Component {
 
   constructor () {
     super ();
-    this.handleChatbarChange = this.handleChatbarChange.bind(this);
     this.state = {
       currentUser: {name: "Bob"}, // optional. if currentUser is not defined, it means the user is Anonymous
-      messages: [
-        {
-          username: "Bob",
-          content: "Has anyone seen my marbles?"
-        },
-        {
-          username: "Anonymous",
-          content: "No, I think you lost them. You lost your marbles Bob. You lost them for good."
-        }
-      ],
-      placeHolder: ''
+      messages: []
+    };
+    this.handleChatbarChange = this.handleChatbarChange.bind(this);
+    this.handleInputChange = this.handleNameChange.bind(this);
+    this.handleNameChange = this.handleNameChange.bind(this);
+  }
+
+  handleChatbarChange(userName, content) {
+    const messageForWS = {
+      type: 'sendMessage',
+      content: content,
+      username: userName,
+      date: Date.now()
+    };
+    this.socket.send(JSON.stringify(messageForWS));
+  }
+
+  handleNameChange(user) {
+    this.setState({name: user});
+  }
+
+  componentDidMount() {
+    this.socket = new WebSocket("ws://localhost:4000");
+    this.socket.onmessage = (receivedMessage) => {
+      const parseMessage = JSON.parse(receivedMessage.data);
+      const userName = parseMessage.username;
+      const content = parseMessage.content;
+      const newMessage = {username: userName, content: content};
+      const messages = this.state.messages.concat(newMessage);
+      this.setState({messages: messages});
     };
   }
 
-
-  handleChatbarChange (content) {
-    const newMessage = {username: 'cool', content: content};
-    const messages = this.state.messages.concat(newMessage);
-    this.setState({messages: messages});
-  }
-
-
-
   render() {
     console.log('Rendering <App />');
-    const content = this.state.placeHolder;
     return (
       <div>
         <nav className='navbar'>
@@ -43,8 +51,8 @@ class App extends Component {
         <Messagelist messages={this.state.messages}/>
         <Chatbar
           currentUser={this.state.currentUser.name}
-          content={content}
-          onChange={this.handleChatbarChange} />
+          nameChangeFunc={this.handleNameChange}
+          inputChangeFunc={this.handleChatbarChange} />
       </div>
     );
   }
