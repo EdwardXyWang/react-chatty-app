@@ -10,6 +10,7 @@ class Chatbar extends Component {
     this.contentPass = this.contentPass.bind(this);
     this.nameChange = this.nameChange.bind(this);
     this.namePass = this.namePass.bind(this);
+    // this.focus = this.focus.bind(this);
   }
 
   contentPass (e) {
@@ -30,6 +31,14 @@ class Chatbar extends Component {
     this.setState({currentUser: e.target.value});
   }
 
+  // focus () {
+  //   this.inputText.focus();
+  // }
+
+  // componentDidMount () {
+  //   this.focus();
+  // }
+
   render() {
     console.log('Rending <Chatbar />');
     const currentUser = this.props.currentUser;
@@ -43,6 +52,8 @@ class Chatbar extends Component {
             onChange={this.nameChange} />
           <input
             className="chatbar-message"
+            autoFocus
+            // ref={(input) => {this.inputText = input;}}
             placeholder="Type a message and hit ENTER"
             onKeyUp={this.contentPass} />
       </footer>
